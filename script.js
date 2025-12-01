@@ -1,250 +1,192 @@
-// Constantes de la grille
-const POINT_SIZE = 10; // Taille d'un point en pixels
-const GRID_WIDTH = 80; // Nombre de points en largeur
-const GRID_HEIGHT = 59; // Nombre de points en hauteur
-const MOVE_INTERVAL = 100; // 100ms = un dixième de seconde
+const CANVAS = document.getElementById("myCanvas");
+CANVAS.width = 800;
+CANVAS.height = 590;
+const ctx = CANVAS.getContext("2d");
 
-let canvas;
-let ctx;
-let gameRunning = true;
-let gameInterval;
 
-// Rubans des joueurs
-const player1 = {
-    x: 1,
-    y: 28,
-    dx: 1, // Direction horizontale (1 = droite)
-    dy: 0, // Direction verticale (0 = pas de mouvement vertical)
-    color: '#0000FF', // Bleu
-    trail: [] // Historique des positions
-};
-
-const player2 = {
-    x: 1,
-    y: 30,
-    dx: 1,
-    dy: 0,
-    color: '#FF0000', // Rouge
-    trail: []
-};
-
-// Initialisation au chargement de la page
-window.addEventListener('DOMContentLoaded', () => {
-    canvas = document.getElementById('myCanvas');
-    ctx = canvas.getContext('2d');
-    
-    // Dessiner une grille de référence (optionnel)
-    drawGrid();
-    
-    // Dessiner les positions initiales
-    drawRibbon(player1);
-    drawRibbon(player2);
-    
-    // Ajouter l'écouteur de touches
-    document.addEventListener('keydown', handleKeyPress);
-    
-    // Démarrer le mouvement automatique
-    gameInterval = setInterval(moveRibbons, MOVE_INTERVAL);
-});
-
-// Gestion des touches du clavier
-function handleKeyPress(event) {
-    const key = event.key.toLowerCase();
-    
-    // Joueur 1 - ZQSD
-    switch(key) {
-        case 'q': // Gauche
-            player1.dx = -1;
-            player1.dy = 0;
-            break;
-        case 'd': // Droite
-            player1.dx = 1;
-            player1.dy = 0;
-            break;
-        case 'z': // Haut
-            player1.dx = 0;
-            player1.dy = -1;
-            break;
-        case 's': // Bas
-            player1.dx = 0;
-            player1.dy = 1;
-            break;
+class Grille {
+    constructor() {
+        this.hauteurGrille = 10;
+        this.largeurGrille = 10;
+        this.largeur = CANVAS.width;
+        this.hauteur = CANVAS.height;
+        this.nbColonnes = this.largeur / this.largeurGrille;
+        this.nbLignes = this.hauteur / this.hauteurGrille;
     }
-    
-    // Joueur 2 - OKLM
-    switch(key) {
-        case 'm': //Droite
-            player2.dx = 1;
-            player2.dy = 0;
-            break;
-        case 'o': //Haut
-            player2.dx = 0;
-            player2.dy = -1;
-            break;
-        case 'l': //Bas
-            player2.dx = 0;
-            player2.dy = 1;
-            break;
-        case 'k': //Gauche
-            player2.dx = -1;
-            player2.dy = 0;
-            break;
-    }
-}
 
-// Fonction pour faire progresser les rubans
-function moveRibbons() {
-    if (!gameRunning) return;
-    
-    // Sauvegarder la position actuelle dans l'historique
-    player1.trail.push({ x: player1.x, y: player1.y });
-    player2.trail.push({ x: player2.x, y: player2.y });
-    
-    // Avancer selon la direction actuelle
-    player1.x += player1.dx;
-    player1.y += player1.dy;
-    player2.x += player2.dx;
-    player2.y += player2.dy;
-    
-    // Vérifier les collisions
-    const player1Collision = checkCollision(player1, player2);
-    const player2Collision = checkCollision(player2, player1);
-    
-    if (player1Collision && player2Collision) {
-        endGame("Match nul !");
-        return;
-    } else if (player1Collision) {
-        endGame("Joueur 2 (Rouge) gagne !");
-        return;
-    } else if (player2Collision) {
-        endGame("Joueur 1 (Bleu) gagne !");
-        return;
-    }
-    
-    // Redessiner
-    redrawGame();
-}
-
-// Fonction pour vérifier les collisions
-function checkCollision(player, opponent) {
-    // Collision avec les bords du canvas
-    if (player.x < 0 || player.x >= GRID_WIDTH || 
-        player.y < 0 || player.y >= GRID_HEIGHT) {
-        return true;
-    }
-    
-    // Collision avec son propre ruban
-    for (let pos of player.trail) {
-        if (pos.x === player.x && pos.y === player.y) {
-            return true;
+    dessinerGrille() {
+        ctx.strokeStyle = "#e0e0e0";
+        ctx.lineWidth = 0.5;
+        
+        for (let x = 0; x <= this.largeur; x += this.largeurGrille) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, this.hauteur);
+            ctx.stroke();
+        }
+        
+        for (let y = 0; y <= this.hauteur; y += this.hauteurGrille) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(this.largeur, y);
+            ctx.stroke();
         }
     }
     
-    // Collision avec le ruban adverse (y compris la tête)
-    for (let pos of opponent.trail) {
-        if (pos.x === player.x && pos.y === player.y) {
-            return true;
+    
+}
+var grille = new Grille();
+grille.dessinerGrille();
+
+class Joueur extends Grille{
+    constructor(positionDepartX, positionDepartY, couleur) {
+        super();
+        this.positionDepartX = positionDepartX;
+        this.positionDepartY = positionDepartY;
+        this.couleur = couleur;
+        this.directionX = 1;
+        this.directionY = 0;
+        this.positions = [[positionDepartX, positionDepartY]];
+    }
+
+    dessinerJoueur() {
+        ctx.fillStyle = this.couleur;
+        ctx.fillRect(this.positionDepartX * this.largeurGrille, this.positionDepartY * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
+    }
+
+    changerDirection(dx, dy) {
+        this.directionX = dx;
+        this.directionY = dy;
+    }
+
+    avancer() {
+        this.positionDepartX += this.directionX;
+        this.positionDepartY += this.directionY;
+        this.positions.push([this.positionDepartX, this.positionDepartY]);
+        this.dessinerJoueur();
+    }
+
+}
+
+var joueur1 = new Joueur(1, 28, "blue");
+var joueur2 = new Joueur(1, 30, "red");
+var jeuEnCours = true;
+var intervalId;
+
+function verifierCollisionBord(joueur) {
+    return joueur.positionDepartX < 0 || 
+           joueur.positionDepartX >= grille.nbColonnes || 
+           joueur.positionDepartY < 0 || 
+           joueur.positionDepartY >= grille.nbLignes;
+}
+
+function verifierCollisionJoueur(joueur, adversaire) {
+    const [x, y] = [joueur.positionDepartX, joueur.positionDepartY];
+    return adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
+}
+
+function afficherGagnant(gagnant) {
+    ctx.fillStyle = "white";
+    ctx.font = "48px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${gagnant} a gagné!`, CANVAS.width / 2, CANVAS.height / 2);
+}
+
+function dessinerJoueurComplet(joueur) {
+    joueur.positions.forEach(([x, y], index) => {
+        ctx.fillStyle = joueur.couleur;
+        if (index === joueur.positions.length - 1) {
+            // Dernier point : dessiner un demi-cercle
+            ctx.beginPath();
+            const centreX = x * grille.largeurGrille + grille.largeurGrille / 2;
+            const centreY = y * grille.hauteurGrille + grille.hauteurGrille / 2;
+            const rayon = grille.largeurGrille / 2;
+            
+            let angleDebut, angleFin;
+            if (joueur.directionX === 1) {
+                angleDebut = -Math.PI / 2;
+                angleFin = Math.PI / 2;
+            } else if (joueur.directionX === -1) {
+                angleDebut = Math.PI / 2;
+                angleFin = 3 * Math.PI / 2;
+            } else if (joueur.directionY === -1) {
+                angleDebut = Math.PI;
+                angleFin = 2 * Math.PI;
+            } else {
+                angleDebut = 0;
+                angleFin = Math.PI;
+            }
+            
+            ctx.arc(centreX, centreY, rayon, angleDebut, angleFin);
+            ctx.fill();
+        } else {
+            ctx.fillRect(x * grille.largeurGrille, y * grille.hauteurGrille, grille.largeurGrille, grille.hauteurGrille);
         }
-    }
-    
-    // Collision avec la tête adverse
-    if (player.x === opponent.x && player.y === opponent.y) {
-        return true;
-    }
-    
-    return false;
-}
-
-// Fonction pour terminer le jeu
-function endGame(message) {
-    gameRunning = false;
-    clearInterval(gameInterval);
-    
-    redrawGame();
-    
-    // Afficher le message de fin
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(message, canvas.width / 2, canvas.height / 2);
-    
-    ctx.font = '24px Arial';
-    ctx.fillText('Rechargez la page pour rejouer', canvas.width / 2, canvas.height / 2 + 50);
-}
-
-// Fonction pour redessiner tout le jeu
-function redrawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-    drawRibbon(player1);
-    drawRibbon(player2);
-}
-
-// Fonction pour dessiner un ruban complet
-function drawRibbon(player) {
-    // Dessiner tous les points parcourus (carrés pleins)
-    player.trail.forEach(pos => {
-        drawPoint(pos.x, pos.y, player.color);
     });
-    
-    // Dessiner le bout actif (demi-cercle)
-    drawSemiCircle(player.x, player.y, player.color);
 }
 
-// Fonction pour dessiner un demi-cercle (bout actif du ruban)
-function drawSemiCircle(x, y, color) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    const centerX = x * POINT_SIZE + POINT_SIZE / 2;
-    const centerY = y * POINT_SIZE + POINT_SIZE / 2;
-    const radius = POINT_SIZE / 2;
-    
-    // Demi-cercle orienté vers la droite
-    ctx.arc(centerX, centerY, radius, -Math.PI / 2, Math.PI / 2);
-    ctx.lineTo(centerX, centerY + radius);
-    ctx.lineTo(centerX, centerY - radius);
-    ctx.closePath();
-    ctx.fill();
+function dessinerTout() {
+    ctx.clearRect(0, 0, CANVAS.width, CANVAS.height);
+    dessinerJoueurComplet(joueur1);
+    dessinerJoueurComplet(joueur2);
 }
+dessinerTout();
 
-// Fonction pour dessiner un point à la position [x, y]
-function drawPoint(x, y, color = '#000000') {
-    if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) {
-        console.warn(`Position hors limites: [${x}, ${y}]`);
-        return;
+intervalId = setInterval(() => {
+    if (!jeuEnCours) return;
+    
+    joueur1.avancer();
+    joueur2.avancer();
+    dessinerTout();
+    
+    if (verifierCollisionBord(joueur1)) {
+        jeuEnCours = false;
+        clearInterval(intervalId);
+        afficherGagnant("Joueur 2 (Rouge)");
+    } else if (verifierCollisionBord(joueur2)) {
+        jeuEnCours = false;
+        clearInterval(intervalId);
+        afficherGagnant("Joueur 1 (Bleu)");
     }
-    
-    ctx.fillStyle = color;
-    ctx.fillRect(x * POINT_SIZE, y * POINT_SIZE, POINT_SIZE, POINT_SIZE);
-}
-
-// Fonction pour effacer un point à la position [x, y]
-function clearPoint(x, y) {
-    ctx.clearRect(x * POINT_SIZE, y * POINT_SIZE, POINT_SIZE, POINT_SIZE);
-}
-
-// Fonction pour dessiner une grille de référence (optionnel)
-function drawGrid() {
-    ctx.strokeStyle = '#e0e0e0';
-    ctx.lineWidth = 0.5;
-    
-    // Lignes verticales
-    for (let x = 0; x <= GRID_WIDTH; x++) {
-        ctx.beginPath();
-        ctx.moveTo(x * POINT_SIZE, 0);
-        ctx.lineTo(x * POINT_SIZE, canvas.height);
-        ctx.stroke();
+    else if (verifierCollisionJoueur(joueur1, joueur2)) {
+        jeuEnCours = false;
+        clearInterval(intervalId);
+        afficherGagnant("Joueur 2 (Rouge)");
+    } else if (verifierCollisionJoueur(joueur2, joueur1)) {
+        jeuEnCours = false;
+        clearInterval(intervalId);
+        afficherGagnant("Joueur 1 (Bleu)");
     }
+}, 100);
+
+document.addEventListener('keydown', function(event) {
+    if (!jeuEnCours) return;
     
-    // Lignes horizontales
-    for (let y = 0; y <= GRID_HEIGHT; y++) {
-        ctx.beginPath();
-        ctx.moveTo(0, y * POINT_SIZE);
-        ctx.lineTo(canvas.width, y * POINT_SIZE);
-        ctx.stroke();
+    switch(event.key) {
+        case 'd':
+            joueur1.changerDirection(1, 0);
+            break;
+        case 'q':
+            joueur1.changerDirection(-1, 0);
+            break;
+        case 'z':
+            joueur1.changerDirection(0, -1);
+            break;
+        case 's':
+            joueur1.changerDirection(0, 1);
+            break;
+        case 'm':
+            joueur2.changerDirection(1, 0);
+            break;
+        case 'k':
+            joueur2.changerDirection(-1, 0);
+            break;
+        case 'o':
+            joueur2.changerDirection(0, -1);
+            break;
+        case 'l':
+            joueur2.changerDirection(0, 1);
+            break;
     }
-}
+});
