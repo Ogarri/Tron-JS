@@ -47,6 +47,7 @@ class Joueur extends Grille{
         this.directionX = 1;
         this.directionY = 0;
         this.positions = [[positionDepartX, positionDepartY]];
+        this.fileDirections = [];
     }
 
     dessinerJoueur() {
@@ -55,11 +56,33 @@ class Joueur extends Grille{
     }
 
     changerDirection(dx, dy) {
-        this.directionX = dx;
-        this.directionY = dy;
+        let derniereDirectionX = this.directionX;
+        let derniereDirectionY = this.directionY;
+        
+        if (this.fileDirections.length > 0) {
+            const derniere = this.fileDirections[this.fileDirections.length - 1];
+            derniereDirectionX = derniere.dx;
+            derniereDirectionY = derniere.dy;
+        }
+        
+        if (dx === -derniereDirectionX && dy === -derniereDirectionY) {
+            return;
+        }
+        
+        if (dx === derniereDirectionX && dy === derniereDirectionY) {
+            return;
+        }
+        
+        this.fileDirections.push({ dx, dy });
     }
 
     avancer() {
+        if (this.fileDirections.length > 0) {
+            const direction = this.fileDirections.shift();
+            this.directionX = direction.dx;
+            this.directionY = direction.dy;
+        }
+        
         this.positionDepartX += this.directionX;
         this.positionDepartY += this.directionY;
         this.positions.push([this.positionDepartX, this.positionDepartY]);
@@ -82,7 +105,12 @@ function verifierCollisionBord(joueur) {
 
 function verifierCollisionJoueur(joueur, adversaire) {
     const [x, y] = [joueur.positionDepartX, joueur.positionDepartY];
-    return adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
+    
+    const collisionAdversaire = adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
+    
+    const collisionPropre = joueur.positions.slice(0, -1).some(([posX, posY]) => posX === x && posY === y);
+    
+    return collisionAdversaire || collisionPropre;
 }
 
 function afficherGagnant(gagnant) {
@@ -97,7 +125,6 @@ function dessinerJoueurComplet(joueur) {
     joueur.positions.forEach(([x, y], index) => {
         ctx.fillStyle = joueur.couleur;
         if (index === joueur.positions.length - 1) {
-            // Dernier point : dessiner un demi-cercle
             ctx.beginPath();
             const centreX = x * grille.largeurGrille + grille.largeurGrille / 2;
             const centreY = y * grille.hauteurGrille + grille.hauteurGrille / 2;
