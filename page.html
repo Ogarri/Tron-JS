@@ -7,9 +7,20 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div>
+    <div id="container">
         <img src="assets/TRON.png" alt="TRON">
-        <canvas id="myCanvas"></canvas>
+        <div id="gameArea">
+            <canvas id="myCanvas"></canvas>
+            <div id="sidebar">
+                <div id="score">
+                    <h2>Score</h2>
+                    <div><span class="label">Joueur 1 (Bleu):</span> <span id="scoreJ1">0</span></div>
+                    <div><span class="label">Joueur 2 (Rouge):</span> <span id="scoreJ2">0</span></div>
+                </div>
+                <button id="btnDemarrer">Démarrer</button>
+                <button id="btnReinitialiser">Réinitialiser</button>
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
