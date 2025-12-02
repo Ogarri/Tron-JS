@@ -125,6 +125,29 @@ class Joueur extends Grille{
         this.dessinerJoueur();
     }
 
+    sauter(adversaire) {
+        const case1X = this.positionDepartX + this.directionX;
+        const case1Y = this.positionDepartY + this.directionY;
+        const case2X = this.positionDepartX + (this.directionX * 2);
+        const case2Y = this.positionDepartY + (this.directionY * 2);
+        
+        this.positions = this.positions.filter(([x, y]) => 
+            !(x === case1X && y === case1Y) && !(x === case2X && y === case2Y)
+        );
+        
+        adversaire.positions = adversaire.positions.filter(([x, y]) => 
+            !(x === case1X && y === case1Y) && !(x === case2X && y === case2Y)
+        );
+        
+        this.positionDepartX = case2X;
+        this.positionDepartY = case2Y;
+        
+        this.positions.push([case1X, case1Y]);
+        this.positions.push([case2X, case2Y]);
+        
+        this.dessinerJoueur();
+    }
+
     verifierCollisionBord() {
         return this.positionDepartX < 0 || 
                this.positionDepartX >= this.nbColonnes || 
@@ -322,6 +345,10 @@ document.addEventListener('keydown', function(event) {
         case 's':
             joueur1.changerDirection(0, 1);
             break;
+        case ' ':
+            joueur1.sauter(joueur2);
+            dessinerTout();
+            break;
         case 'm':
             joueur2.changerDirection(1, 0);
             break;
@@ -334,9 +361,12 @@ document.addEventListener('keydown', function(event) {
         case 'l':
             joueur2.changerDirection(0, 1);
             break;
+        case 'Enter':
+            joueur2.sauter(joueur1);
+            dessinerTout();
+            break;
     }
 });
 
 /*Reste à faire :
-- Ajouter une touche pour chaque joueur qui permet de sauter par dessus un obstacle (une seule case). Le tracé recouvre l'obstacle et continue au-delà de l'obstacle, si c'est possible.
 - Ajouter un bouton pour permettre aux joueurs de configurer les touches de direction. Ceci devra se faire dans une fenêtre modale (utiliser par exemple la fonction dialog() de Jquery UI). */
