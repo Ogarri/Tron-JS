@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAE WEB 2025</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
     <div id="container">
@@ -19,18 +20,20 @@
                 </div>
                 <button id="btnDemarrer">Démarrer</button>
                 <button id="btnReinitialiser">Réinitialiser</button>
+                <button id="btnParametres">Paramètres</button>
             </div>
         </div>
     </div>
 
-    <div id="dialogParametre" title="Configuration des touches" style="display: none;">
-        <div class="parametre-section">
-           <h3>Joueur 1 (Bleu)</h3>
-           <div class="touche-config">
+    <!-- Modal pour les paramètres -->
+    <div id="dialogParametres" title="Configuration des touches" style="display: none;">
+        <div class="parametres-section">
+            <h3>Joueur 1 (Bleu)</h3>
+            <div class="touche-config">
                 <label>Haut:</label>
                 <input type="text" id="j1Haut" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="haut">Changer</button>
-           </div>
+            </div>
             <div class="touche-config">
                 <label>Bas:</label>
                 <input type="text" id="j1Bas" readonly>
@@ -47,13 +50,13 @@
                 <button class="btn-changer" data-joueur="1" data-direction="droite">Changer</button>
             </div>
             <div class="touche-config">
-                <label>Sauter</label>
+                <label>Sauter:</label>
                 <input type="text" id="j1Sauter" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="sauter">Changer</button>
-            </div> 
+            </div>
         </div>
 
-        <div class="parametre-section">
+        <div class="parametres-section">
             <h3>Joueur 2 (Rouge)</h3>
             <div class="touche-config">
                 <label>Haut:</label>
@@ -76,15 +79,15 @@
                 <button class="btn-changer" data-joueur="2" data-direction="droite">Changer</button>
             </div>
             <div class="touche-config">
-                <label>Sauter</label>
+                <label>Sauter:</label>
                 <input type="text" id="j2Sauter" readonly>
                 <button class="btn-changer" data-joueur="2" data-direction="sauter">Changer</button>
             </div>
         </div>
-    </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <button id="btnReinitialiserTouches">Réinitialiser les touches par default</button>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="btnReinitialiserTouches">Réinitialiser les touches par défaut</button>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
