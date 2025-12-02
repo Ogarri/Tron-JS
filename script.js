@@ -32,11 +32,7 @@ class Grille {
             ctx.stroke();
         }
     }
-    
-    
 }
-var grille = new Grille();
-grille.dessinerGrille();
 
 class Joueur extends Grille{
     constructor(positionDepartX, positionDepartY, couleur) {
@@ -88,29 +84,63 @@ class Joueur extends Grille{
         this.positions.push([this.positionDepartX, this.positionDepartY]);
         this.dessinerJoueur();
     }
+
+    verifierCollisionBord() {
+        return this.positionDepartX < 0 || 
+               this.positionDepartX >= this.nbColonnes || 
+               this.positionDepartY < 0 || 
+               this.positionDepartY >= this.nbLignes;
+    }
+
+    verifierCollision(adversaire) {
+        const [x, y] = [this.positionDepartX, this.positionDepartY];
+        
+        const collisionAdversaire = adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
+        const collisionPropre = this.positions.slice(0, -1).some(([posX, posY]) => posX === x && posY === y);
+        
+        return collisionAdversaire || collisionPropre;
+    }
+
+    dessinerComplet() {
+        this.positions.forEach(([x, y], index) => {
+            ctx.fillStyle = this.couleur;
+            if (index === this.positions.length - 1) {
+                ctx.beginPath();
+                const centreX = x * this.largeurGrille + this.largeurGrille / 2;
+                const centreY = y * this.hauteurGrille + this.hauteurGrille / 2;
+                const rayon = this.largeurGrille / 2;
+                
+                let angleDebut, angleFin;
+                if (this.directionX === 1) {
+                    angleDebut = -Math.PI / 2;
+                    angleFin = Math.PI / 2;
+                } else if (this.directionX === -1) {
+                    angleDebut = Math.PI / 2;
+                    angleFin = 3 * Math.PI / 2;
+                } else if (this.directionY === -1) {
+                    angleDebut = Math.PI;
+                    angleFin = 2 * Math.PI;
+                } else {
+                    angleDebut = 0;
+                    angleFin = Math.PI;
+                }
+                
+                ctx.arc(centreX, centreY, rayon, angleDebut, angleFin);
+                ctx.fill();
+            } else {
+                ctx.fillRect(x * this.largeurGrille, y * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
+            }
+        });
+    }
 }
+
+var grille = new Grille();
+grille.dessinerGrille();
 
 var joueur1 = new Joueur(1, 28, "blue");
 var joueur2 = new Joueur(1, 30, "red");
 var jeuEnCours = true;
 var intervalId;
-
-function verifierCollisionBord(joueur) {
-    return joueur.positionDepartX < 0 || 
-           joueur.positionDepartX >= grille.nbColonnes || 
-           joueur.positionDepartY < 0 || 
-           joueur.positionDepartY >= grille.nbLignes;
-}
-
-function verifierCollisionJoueur(joueur, adversaire) {
-    const [x, y] = [joueur.positionDepartX, joueur.positionDepartY];
-    
-    const collisionAdversaire = adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
-    
-    const collisionPropre = joueur.positions.slice(0, -1).some(([posX, posY]) => posX === x && posY === y);
-    
-    return collisionAdversaire || collisionPropre;
-}
 
 function afficherGagnant(gagnant) {
     ctx.fillStyle = "white";
@@ -120,42 +150,10 @@ function afficherGagnant(gagnant) {
     ctx.fillText(`${gagnant} a gagné!`, CANVAS.width / 2, CANVAS.height / 2);
 }
 
-function dessinerJoueurComplet(joueur) {
-    joueur.positions.forEach(([x, y], index) => {
-        ctx.fillStyle = joueur.couleur;
-        if (index === joueur.positions.length - 1) {
-            ctx.beginPath();
-            const centreX = x * grille.largeurGrille + grille.largeurGrille / 2;
-            const centreY = y * grille.hauteurGrille + grille.hauteurGrille / 2;
-            const rayon = grille.largeurGrille / 2;
-            
-            let angleDebut, angleFin;
-            if (joueur.directionX === 1) {
-                angleDebut = -Math.PI / 2;
-                angleFin = Math.PI / 2;
-            } else if (joueur.directionX === -1) {
-                angleDebut = Math.PI / 2;
-                angleFin = 3 * Math.PI / 2;
-            } else if (joueur.directionY === -1) {
-                angleDebut = Math.PI;
-                angleFin = 2 * Math.PI;
-            } else {
-                angleDebut = 0;
-                angleFin = Math.PI;
-            }
-            
-            ctx.arc(centreX, centreY, rayon, angleDebut, angleFin);
-            ctx.fill();
-        } else {
-            ctx.fillRect(x * grille.largeurGrille, y * grille.hauteurGrille, grille.largeurGrille, grille.hauteurGrille);
-        }
-    });
-}
-
 function dessinerTout() {
     ctx.clearRect(0, 0, CANVAS.width, CANVAS.height);
-    dessinerJoueurComplet(joueur1);
-    dessinerJoueurComplet(joueur2);
+    joueur1.dessinerComplet();
+    joueur2.dessinerComplet();
 }
 dessinerTout();
 
@@ -166,20 +164,20 @@ intervalId = setInterval(() => {
     joueur2.avancer();
     dessinerTout();
     
-    if (verifierCollisionBord(joueur1)) {
+    if (joueur1.verifierCollisionBord()) {
         jeuEnCours = false;
         clearInterval(intervalId);
         afficherGagnant("Joueur 2 (Rouge)");
-    } else if (verifierCollisionBord(joueur2)) {
+    } else if (joueur2.verifierCollisionBord()) {
         jeuEnCours = false;
         clearInterval(intervalId);
         afficherGagnant("Joueur 1 (Bleu)");
     }
-    else if (verifierCollisionJoueur(joueur1, joueur2)) {
+    else if (joueur1.verifierCollision(joueur2)) {
         jeuEnCours = false;
         clearInterval(intervalId);
         afficherGagnant("Joueur 2 (Rouge)");
-    } else if (verifierCollisionJoueur(joueur2, joueur1)) {
+    } else if (joueur2.verifierCollision(joueur1)) {
         jeuEnCours = false;
         clearInterval(intervalId);
         afficherGagnant("Joueur 1 (Bleu)");
