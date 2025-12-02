@@ -477,7 +477,3 @@ document.addEventListener('keydown', function(event) {
         dessinerTout();
     }
 });
-
-/*Reste à faire :
-- Personaliser l'affichage
-- Faire un README.md */

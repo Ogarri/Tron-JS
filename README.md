@@ -109,6 +109,14 @@ intervalId = setInterval(() => { ... }, 100);
 - Les touches doivent être uniques pour chaque joueur
 - Le jeu nécessite un navigateur moderne avec support Canvas
 
+## 🔮 Améliorations futures
+
+- Correction des bugs dans les paramètres
+- Personaliser l'affichage (mettre des motos si je trouve un asset)
+- Faire un mode de jeu solo avec une IA (aucune idée de comment faire actuellement)
+- Bien refaire tous les commentaires de mon code pour ne pas avoir un 0 parce que je suis plus intelligent que le prof (c'est evidement faux)*/
+
+
 ## 👥 Crédits
 
 Projet développé dans le cadre de la SAE WEB 2025.
