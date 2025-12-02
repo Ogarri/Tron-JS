@@ -88,7 +88,6 @@ class Joueur extends Grille{
         this.positions.push([this.positionDepartX, this.positionDepartY]);
         this.dessinerJoueur();
     }
-
 }
 
 var joueur1 = new Joueur(1, 28, "blue");
@@ -217,3 +216,9 @@ document.addEventListener('keydown', function(event) {
             break;
     }
 });
+
+/*Reste à faire :
+- Ajouter une touche pour chaque joueur qui permet de sauter par dessus un obstacle (une seule case). Le tracé recouvre l’obstacle et continue au-delà de l’obstacle, si c’est possible.
+- Une partie se joue en trois manches gagnantes. Dès qu’un joueur heurte un obstacle, la manche suivante se lance immédiatement. Il peut y avoir égalité sur une manche, dans ce cas le score n’évolue pas. Afficher le score (en dehors du canvas).
+- Ajouter un bouton pour démarrer/redémarrer une nouvelle partie. Ce bouton est désactivé lorsque la partie est en cours.
+- Ajouter un bouton pour permettre aux joueurs de configurer les touches de direction. Ceci devra se faire dans une fenêtre modale (utiliser par exemple la fonction dialog() de Jquery UI). */
