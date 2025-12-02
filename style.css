@@ -101,3 +101,93 @@ canvas {
 #btnReinitialiser:hover {
     background-color: #cc0000;
 }
+
+#btnParametres {
+    padding: 12px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #3333ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#btnParametres:hover {
+    background-color: #0066cc;
+}
+
+/* Styles pour la modal de paramètres */
+.parametres-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+.parametres-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.touche-config {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.touche-config label {
+    min-width: 80px;
+    font-weight: bold;
+}
+
+.touche-config input {
+    flex: 1;
+    padding: 8px;
+    border: 2px solid #ccc;
+    border-radius: 3px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #f5f5f5;
+}
+
+.btn-changer {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-changer:hover {
+    background-color: #45a049;
+}
+
+.btn-changer.en-attente {
+    background-color: #ff9800;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+#btnReinitialiserTouches {
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#btnReinitialiserTouches:hover {
+    background-color: #da190b;
+}

@@ -216,8 +216,125 @@ var jeuEnCours = false;
 var partieCommencee = false;
 var intervalId = null;
 
+// Configuration des touches par défaut
+const touchesParDefaut = {
+    joueur1: {
+        haut: 'z',
+        bas: 's',
+        gauche: 'q',
+        droite: 'd',
+        sauter: ' '
+    },
+    joueur2: {
+        haut: 'o',
+        bas: 'l',
+        gauche: 'k',
+        droite: 'm',
+        sauter: 'Enter'
+    }
+};
+
+// Configuration des touches actuelle (initialisée avec les valeurs par défaut)
+let touchesConfig = JSON.parse(JSON.stringify(touchesParDefaut));
+
+// Charger les touches sauvegardées si elles existent
+if (localStorage.getItem('touchesConfig')) {
+    touchesConfig = JSON.parse(localStorage.getItem('touchesConfig'));
+}
+
 const btnDemarrer = document.getElementById('btnDemarrer');
 const btnReinitialiser = document.getElementById('btnReinitialiser');
+const btnParametres = document.getElementById('btnParametres');
+
+// Initialiser la modal jQuery UI
+$(document).ready(function() {
+    $("#dialogParametres").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 600,
+        buttons: {
+            "Fermer": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+
+    // Afficher les touches actuelles
+    afficherTouchesActuelles();
+
+    // Gestion du clic sur les boutons "Changer"
+    $('.btn-changer').on('click', function() {
+        const joueur = $(this).data('joueur');
+        const direction = $(this).data('direction');
+        const bouton = $(this);
+        const input = $(`#j${joueur}${direction.charAt(0).toUpperCase() + direction.slice(1)}`);
+        
+        bouton.text('Appuyez sur une touche...').addClass('en-attente');
+        input.val('...');
+        
+        // Écouter la prochaine touche pressée
+        const ecouteur = function(e) {
+            e.preventDefault();
+            
+            const nouvelleTouche = e.key;
+            const joueurKey = joueur === '1' ? 'joueur1' : 'joueur2';
+            touchesConfig[joueurKey][direction] = nouvelleTouche;
+            
+            // Sauvegarder dans le localStorage
+            localStorage.setItem('touchesConfig', JSON.stringify(touchesConfig));
+            
+            afficherTouchesActuelles();
+            bouton.text('Changer').removeClass('en-attente');
+            
+            $(document).off('keydown', ecouteur);
+        };
+        
+        $(document).on('keydown', ecouteur);
+    });
+
+    // Réinitialiser les touches par défaut
+    $('#btnReinitialiserTouches').on('click', function() {
+        touchesConfig = JSON.parse(JSON.stringify(touchesParDefaut));
+        localStorage.setItem('touchesConfig', JSON.stringify(touchesConfig));
+        afficherTouchesActuelles();
+    });
+});
+
+// Fonction pour afficher les touches actuelles dans les inputs
+function afficherTouchesActuelles() {
+    $('#j1Haut').val(afficherNomTouche(touchesConfig.joueur1.haut));
+    $('#j1Bas').val(afficherNomTouche(touchesConfig.joueur1.bas));
+    $('#j1Gauche').val(afficherNomTouche(touchesConfig.joueur1.gauche));
+    $('#j1Droite').val(afficherNomTouche(touchesConfig.joueur1.droite));
+    $('#j1Sauter').val(afficherNomTouche(touchesConfig.joueur1.sauter));
+    
+    $('#j2Haut').val(afficherNomTouche(touchesConfig.joueur2.haut));
+    $('#j2Bas').val(afficherNomTouche(touchesConfig.joueur2.bas));
+    $('#j2Gauche').val(afficherNomTouche(touchesConfig.joueur2.gauche));
+    $('#j2Droite').val(afficherNomTouche(touchesConfig.joueur2.droite));
+    $('#j2Sauter').val(afficherNomTouche(touchesConfig.joueur2.sauter));
+}
+
+// Fonction pour afficher un nom lisible pour les touches spéciales
+function afficherNomTouche(touche) {
+    const nomsSpeciaux = {
+        ' ': 'Espace',
+        'Enter': 'Entrée',
+        'ArrowUp': '↑',
+        'ArrowDown': '↓',
+        'ArrowLeft': '←',
+        'ArrowRight': '→',
+        'Shift': 'Maj',
+        'Control': 'Ctrl',
+        'Alt': 'Alt'
+    };
+    return nomsSpeciaux[touche] || touche.toUpperCase();
+}
+
+// Ouvrir la modal de paramètres
+btnParametres.addEventListener('click', function() {
+    $("#dialogParametres").dialog("open");
+});
 
 function verifierFinPartie() {
     const gagnant = score.verifierGagnant();
@@ -332,43 +449,35 @@ dessinerTout();
 document.addEventListener('keydown', function(event) {
     if (!jeuEnCours || !partieCommencee) return;
     
-    switch(event.key) {
-        case 'd':
-            joueur1.changerDirection(1, 0);
-            break;
-        case 'q':
-            joueur1.changerDirection(-1, 0);
-            break;
-        case 'z':
-            joueur1.changerDirection(0, -1);
-            break;
-        case 's':
-            joueur1.changerDirection(0, 1);
-            break;
-        case ' ':
-            joueur1.sauter(joueur2);
-            dessinerTout();
-            break;
-        case 'm':
-            joueur2.changerDirection(1, 0);
-            break;
-        case 'k':
-            joueur2.changerDirection(-1, 0);
-            break;
-        case 'o':
-            joueur2.changerDirection(0, -1);
-            break;
-        case 'l':
-            joueur2.changerDirection(0, 1);
-            break;
-        case 'Enter':
-            joueur2.sauter(joueur1);
-            dessinerTout();
-            break;
+    // Joueur 1
+    if (event.key === touchesConfig.joueur1.droite) {
+        joueur1.changerDirection(1, 0);
+    } else if (event.key === touchesConfig.joueur1.gauche) {
+        joueur1.changerDirection(-1, 0);
+    } else if (event.key === touchesConfig.joueur1.haut) {
+        joueur1.changerDirection(0, -1);
+    } else if (event.key === touchesConfig.joueur1.bas) {
+        joueur1.changerDirection(0, 1);
+    } else if (event.key === touchesConfig.joueur1.sauter) {
+        joueur1.sauter(joueur2);
+        dessinerTout();
+    }
+    
+    // Joueur 2
+    if (event.key === touchesConfig.joueur2.droite) {
+        joueur2.changerDirection(1, 0);
+    } else if (event.key === touchesConfig.joueur2.gauche) {
+        joueur2.changerDirection(-1, 0);
+    } else if (event.key === touchesConfig.joueur2.haut) {
+        joueur2.changerDirection(0, -1);
+    } else if (event.key === touchesConfig.joueur2.bas) {
+        joueur2.changerDirection(0, 1);
+    } else if (event.key === touchesConfig.joueur2.sauter) {
+        joueur2.sauter(joueur1);
+        dessinerTout();
     }
 });
 
 /*Reste à faire :
-- Ajouter un bouton pour permettre aux joueurs de configurer les touches de direction. Ceci devra se faire dans une fenêtre modale (utiliser par exemple la fonction dialog() de Jquery UI). 
 - Personaliser l'affichage
 - Faire un README.md */
