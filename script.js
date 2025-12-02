@@ -369,4 +369,6 @@ document.addEventListener('keydown', function(event) {
 });
 
 /*Reste à faire :
-- Ajouter un bouton pour permettre aux joueurs de configurer les touches de direction. Ceci devra se faire dans une fenêtre modale (utiliser par exemple la fonction dialog() de Jquery UI). */
+- Ajouter un bouton pour permettre aux joueurs de configurer les touches de direction. Ceci devra se faire dans une fenêtre modale (utiliser par exemple la fonction dialog() de Jquery UI). 
+- Personaliser l'affichage
+- Faire un README.md */
