@@ -1,6 +1,10 @@
+// ===== CONFIGURATION DU CANVAS =====
+// Récupération de l'élément canvas depuis le HTML
 const CANVAS = document.getElementById("myCanvas");
+// Définition des dimensions du terrain de jeu
 CANVAS.width = 800;
 CANVAS.height = 590;
+// Obtention du contexte 2D pour dessiner sur le canvas
 const ctx = CANVAS.getContext("2d");
 
 
@@ -34,34 +38,43 @@ class Grille {
     }
 }
 
+// ===== CLASSE SCORE =====
+// Gère le système de points et détermine le gagnant
 class Score {
     constructor(manchesGagnantes = 3) {
         this.scoreJ1 = 0;
         this.scoreJ2 = 0;
+        // Nombre de manches nécessaires pour remporter la partie
         this.manchesGagnantes = manchesGagnantes;
     }
 
+    // Incrémenter le score du joueur 1
     incrementerJ1() {
         this.scoreJ1++;
         this.mettreAJour();
     }
 
+    // Incrémenter le score du joueur 2
     incrementerJ2() {
         this.scoreJ2++;
         this.mettreAJour();
     }
 
+    // Réinitialiser les scores à zéro
     reinitialiser() {
         this.scoreJ1 = 0;
         this.scoreJ2 = 0;
         this.mettreAJour();
     }
 
+    // Mettre à jour l'affichage des scores dans le HTML
     mettreAJour() {
         document.getElementById('scoreJ1').textContent = this.scoreJ1;
         document.getElementById('scoreJ2').textContent = this.scoreJ2;
     }
 
+    // Vérifier si un joueur a gagné la partie
+    // Retourne 1 si joueur 1 gagne, 2 si joueur 2 gagne, 0 sinon
     verifierGagnant() {
         if (this.scoreJ1 >= this.manchesGagnantes) {
             return 1;
@@ -72,26 +85,37 @@ class Score {
     }
 }
 
+// ===== CLASSE JOUEUR =====
+// Représente un joueur avec sa position, direction, traînée et comportement
 class Joueur extends Grille{
     constructor(positionDepartX, positionDepartY, couleur) {
-        super();
+        super(); // Hérite des propriétés de Grille
+        // Positions initiales (pour réinitialisation)
         this.positionDepartXInitial = positionDepartX;
         this.positionDepartYInitial = positionDepartY;
+        // Positions actuelles
         this.positionDepartX = positionDepartX;
         this.positionDepartY = positionDepartY;
+        // Couleur de la traînée du joueur
         this.couleur = couleur;
+        // Direction actuelle (1,0 = droite par défaut)
         this.directionX = 1;
         this.directionY = 0;
+        // Historique de toutes les positions (traînée)
         this.positions = [[positionDepartX, positionDepartY]];
+        // File d'attente des changements de direction
         this.fileDirections = [];
     }
 
+    // Dessine une cellule du joueur à sa position actuelle
     dessinerJoueur() {
         ctx.fillStyle = this.couleur;
         ctx.fillRect(this.positionDepartX * this.largeurGrille, this.positionDepartY * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
     }
 
+    // Ajoute un changement de direction à la file d'attente
     changerDirection(dx, dy) {
+        // Récupérer la dernière direction (actuelle ou en attente)
         let derniereDirectionX = this.directionX;
         let derniereDirectionY = this.directionY;
         
@@ -101,53 +125,67 @@ class Joueur extends Grille{
             derniereDirectionY = derniere.dy;
         }
         
+        // Empêcher le demi-tour (direction opposée)
         if (dx === -derniereDirectionX && dy === -derniereDirectionY) {
             return;
         }
         
+        // Empêcher de répéter la même direction
         if (dx === derniereDirectionX && dy === derniereDirectionY) {
             return;
         }
         
+        // Ajouter la nouvelle direction à la file
         this.fileDirections.push({ dx, dy });
     }
 
+    // Fait avancer le joueur d'une case dans sa direction actuelle
     avancer() {
+        // Appliquer le prochain changement de direction s'il existe
         if (this.fileDirections.length > 0) {
             const direction = this.fileDirections.shift();
             this.directionX = direction.dx;
             this.directionY = direction.dy;
         }
         
+        // Calculer la nouvelle position
         this.positionDepartX += this.directionX;
         this.positionDepartY += this.directionY;
+        // Ajouter la nouvelle position à l'historique
         this.positions.push([this.positionDepartX, this.positionDepartY]);
         this.dessinerJoueur();
     }
 
+    // Fait sauter le joueur par-dessus 2 cases (pour éviter les obstacles)
     sauter(adversaire) {
+        // Calculer les positions des 2 cases à sauter
         const case1X = this.positionDepartX + this.directionX;
         const case1Y = this.positionDepartY + this.directionY;
         const case2X = this.positionDepartX + (this.directionX * 2);
         const case2Y = this.positionDepartY + (this.directionY * 2);
         
+        // Retirer ces cases de la traînée du joueur
         this.positions = this.positions.filter(([x, y]) => 
             !(x === case1X && y === case1Y) && !(x === case2X && y === case2Y)
         );
         
+        // Retirer ces cases de la traînée de l'adversaire
         adversaire.positions = adversaire.positions.filter(([x, y]) => 
             !(x === case1X && y === case1Y) && !(x === case2X && y === case2Y)
         );
         
+        // Déplacer le joueur à la position finale
         this.positionDepartX = case2X;
         this.positionDepartY = case2Y;
         
+        // Ajouter les nouvelles positions à la traînée
         this.positions.push([case1X, case1Y]);
         this.positions.push([case2X, case2Y]);
         
         this.dessinerJoueur();
     }
 
+    // Vérifie si le joueur touche un bord du terrain
     verifierCollisionBord() {
         return this.positionDepartX < 0 || 
                this.positionDepartX >= this.nbColonnes || 
@@ -155,35 +193,41 @@ class Joueur extends Grille{
                this.positionDepartY >= this.nbLignes;
     }
 
+    // Vérifie si le joueur touche une traînée (la sienne ou celle de l'adversaire)
     verifierCollision(adversaire) {
         const [x, y] = [this.positionDepartX, this.positionDepartY];
         
+        // Collision avec la traînée de l'adversaire
         const collisionAdversaire = adversaire.positions.some(([posX, posY]) => posX === x && posY === y);
+        // Collision avec sa propre traînée (sauf la position actuelle)
         const collisionPropre = this.positions.slice(0, -1).some(([posX, posY]) => posX === x && posY === y);
         
         return collisionAdversaire || collisionPropre;
     }
 
+    // Dessine la traînée complète du joueur
     dessinerComplet() {
         this.positions.forEach(([x, y], index) => {
             ctx.fillStyle = this.couleur;
+            // La dernière position (tête) est dessinée en forme de demi-cercle
             if (index === this.positions.length - 1) {
                 ctx.beginPath();
                 const centreX = x * this.largeurGrille + this.largeurGrille / 2;
                 const centreY = y * this.hauteurGrille + this.hauteurGrille / 2;
                 const rayon = this.largeurGrille / 2;
                 
+                // Déterminer l'angle du demi-cercle selon la direction
                 let angleDebut, angleFin;
-                if (this.directionX === 1) {
+                if (this.directionX === 1) { // Droite
                     angleDebut = -Math.PI / 2;
                     angleFin = Math.PI / 2;
-                } else if (this.directionX === -1) {
+                } else if (this.directionX === -1) { // Gauche
                     angleDebut = Math.PI / 2;
                     angleFin = 3 * Math.PI / 2;
-                } else if (this.directionY === -1) {
+                } else if (this.directionY === -1) { // Haut
                     angleDebut = Math.PI;
                     angleFin = 2 * Math.PI;
-                } else {
+                } else { // Bas
                     angleDebut = 0;
                     angleFin = Math.PI;
                 }
@@ -191,11 +235,13 @@ class Joueur extends Grille{
                 ctx.arc(centreX, centreY, rayon, angleDebut, angleFin);
                 ctx.fill();
             } else {
+                // Les autres positions sont des carrés
                 ctx.fillRect(x * this.largeurGrille, y * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
             }
         });
     }
 
+    // Réinitialise le joueur à sa position de départ
     reinitialiser() {
         this.positionDepartX = this.positionDepartXInitial;
         this.positionDepartY = this.positionDepartYInitial;
@@ -206,17 +252,23 @@ class Joueur extends Grille{
     }
 }
 
+// ===== INITIALISATION DU JEU =====
+// Créer la grille et la dessiner
 var grille = new Grille();
 grille.dessinerGrille();
 
+// Créer les deux joueurs (positions de départ et couleurs)
 var joueur1 = new Joueur(1, 28, "blue");
 var joueur2 = new Joueur(1, 30, "red");
+// Créer le système de score (premier à 3 manches)
 var score = new Score(3);
+// Variables d'état du jeu
 var jeuEnCours = false;
 var partieCommencee = false;
 var intervalId = null;
 
-// Configuration des touches par défaut
+// ===== CONFIGURATION DES TOUCHES =====
+// Configuration des touches par défaut pour les deux joueurs
 const touchesParDefaut = {
     joueur1: {
         haut: 'z',
@@ -234,23 +286,25 @@ const touchesParDefaut = {
     }
 };
 
-// Configuration des touches actuelle (initialisée avec les valeurs par défaut)
+// Configuration des touches actuelle (copie des touches par défaut)
 let touchesConfig = JSON.parse(JSON.stringify(touchesParDefaut));
 
-// Charger les touches sauvegardées si elles existent
+// Charger les touches personnalisées depuis le localStorage si elles existent
 if (localStorage.getItem('touchesConfig')) {
     touchesConfig = JSON.parse(localStorage.getItem('touchesConfig'));
 }
 
+// ===== RÉCUPÉRATION DES BOUTONS =====
 const btnDemarrer = document.getElementById('btnDemarrer');
 const btnReinitialiser = document.getElementById('btnReinitialiser');
 const btnParametres = document.getElementById('btnParametres');
 
-// Initialiser la modal jQuery UI
+// ===== INITIALISATION DE LA MODAL JQUERY UI =====
 $(document).ready(function() {
+    // Configurer la modal de paramètres
     $("#dialogParametres").dialog({
-        autoOpen: false,
-        modal: true,
+        autoOpen: false, // Ne pas ouvrir automatiquement
+        modal: true, // Bloquer l'interaction avec le reste de la page
         width: 600,
         buttons: {
             "Fermer": function() {
@@ -259,55 +313,73 @@ $(document).ready(function() {
         }
     });
 
-    // Afficher les touches actuelles
+    // Afficher les touches actuelles dans les champs de la modal
     afficherTouchesActuelles();
 
-    // Gestion du clic sur les boutons "Changer"
+    // ===== GESTION DU CHANGEMENT DE TOUCHES =====
+    // Écouter les clics sur les boutons "Changer"
     $('.btn-changer').on('click', function() {
-        const joueur = $(this).data('joueur');
-        const direction = $(this).data('direction');
+        // Récupérer les données du bouton (joueur et direction)
+        const joueur = $(this).data('joueur'); // 1 ou 2
+        const direction = $(this).data('direction'); // haut, bas, gauche, droite, sauter
         const bouton = $(this);
-        const input = $(`#j${joueur}${direction.charAt(0).toUpperCase() + direction.slice(1)}`);
         
+        // Construire l'ID de l'input correspondant (ex: j1Haut, j2Bas)
+        const directionCapitalisee = direction.charAt(0).toUpperCase() + direction.slice(1);
+        const inputId = `#j${joueur}${directionCapitalisee}`;
+        const input = $(inputId);
+        
+        // Changer l'apparence du bouton pour indiquer l'attente
         bouton.text('Appuyez sur une touche...').addClass('en-attente');
         input.val('...');
         
-        // Écouter la prochaine touche pressée
+        // Créer un écouteur pour capturer la prochaine touche pressée
         const ecouteur = function(e) {
-            e.preventDefault();
+            e.preventDefault(); // Empêcher le comportement par défaut de la touche
             
-            const nouvelleTouche = e.key;
-            const joueurKey = joueur === '1' ? 'joueur1' : 'joueur2';
+            const nouvelleTouche = e.key; // Récupérer la touche pressée
+            // Déterminer à quel joueur appartient cette configuration
+            const joueurKey = joueur === 1 ? 'joueur1' : 'joueur2';
+            // Mettre à jour la configuration
             touchesConfig[joueurKey][direction] = nouvelleTouche;
             
-            // Sauvegarder dans le localStorage
+            // Sauvegarder dans le localStorage pour persistence
             localStorage.setItem('touchesConfig', JSON.stringify(touchesConfig));
             
+            // Mettre à jour l'affichage
             afficherTouchesActuelles();
             bouton.text('Changer').removeClass('en-attente');
             
+            // Retirer l'écouteur pour éviter de capturer d'autres touches
             $(document).off('keydown', ecouteur);
         };
         
+        // Ajouter l'écouteur au document
         $(document).on('keydown', ecouteur);
     });
 
-    // Réinitialiser les touches par défaut
+    // ===== BOUTON DE RÉINITIALISATION DES TOUCHES =====
     $('#btnReinitialiserTouches').on('click', function() {
+        // Restaurer les touches par défaut
         touchesConfig = JSON.parse(JSON.stringify(touchesParDefaut));
+        // Sauvegarder dans le localStorage
         localStorage.setItem('touchesConfig', JSON.stringify(touchesConfig));
+        // Mettre à jour l'affichage
         afficherTouchesActuelles();
     });
 });
 
-// Fonction pour afficher les touches actuelles dans les inputs
+// ===== FONCTION D'AFFICHAGE DES TOUCHES =====
+// Met à jour tous les champs d'input avec les touches actuelles
 function afficherTouchesActuelles() {
+    // Joueur 1
     $('#j1Haut').val(afficherNomTouche(touchesConfig.joueur1.haut));
     $('#j1Bas').val(afficherNomTouche(touchesConfig.joueur1.bas));
     $('#j1Gauche').val(afficherNomTouche(touchesConfig.joueur1.gauche));
     $('#j1Droite').val(afficherNomTouche(touchesConfig.joueur1.droite));
     $('#j1Sauter').val(afficherNomTouche(touchesConfig.joueur1.sauter));
     
+    // Joueur 2
     $('#j2Haut').val(afficherNomTouche(touchesConfig.joueur2.haut));
     $('#j2Bas').val(afficherNomTouche(touchesConfig.joueur2.bas));
     $('#j2Gauche').val(afficherNomTouche(touchesConfig.joueur2.gauche));
@@ -315,7 +387,8 @@ function afficherTouchesActuelles() {
     $('#j2Sauter').val(afficherNomTouche(touchesConfig.joueur2.sauter));
 }
 
-// Fonction pour afficher un nom lisible pour les touches spéciales
+// ===== FONCTION DE CONVERSION DES NOMS DE TOUCHES =====
+// Convertit les touches spéciales en noms lisibles
 function afficherNomTouche(touche) {
     const nomsSpeciaux = {
         ' ': 'Espace',
@@ -328,14 +401,17 @@ function afficherNomTouche(touche) {
         'Control': 'Ctrl',
         'Alt': 'Alt'
     };
+    // Retourner le nom spécial ou la touche en majuscule
     return nomsSpeciaux[touche] || touche.toUpperCase();
 }
 
-// Ouvrir la modal de paramètres
+// ===== OUVERTURE DE LA MODAL DE PARAMÈTRES =====
 btnParametres.addEventListener('click', function() {
     $("#dialogParametres").dialog("open");
 });
 
+// ===== FONCTION DE VÉRIFICATION DE FIN DE PARTIE =====
+// Vérifie si un joueur a remporté suffisamment de manches
 function verifierFinPartie() {
     const gagnant = score.verifierGagnant();
     if (gagnant === 1) {
@@ -354,6 +430,8 @@ function verifierFinPartie() {
     return false;
 }
 
+// ===== FONCTION DE LANCEMENT D'UNE NOUVELLE MANCHE =====
+// Réinitialise les joueurs sans toucher au score
 function lancerNouvelleManche() {
     joueur1.reinitialiser();
     joueur2.reinitialiser();
@@ -361,7 +439,10 @@ function lancerNouvelleManche() {
     dessinerTout();
 }
 
+// ===== FONCTION DE DÉMARRAGE DE LA PARTIE =====
+// Réinitialise tout et démarre le jeu
 function demarrerPartie() {
+    // Réinitialiser le score et les joueurs
     score.reinitialiser();
     joueur1.reinitialiser();
     joueur2.reinitialiser();
@@ -371,23 +452,30 @@ function demarrerPartie() {
     btnDemarrer.textContent = "Partie en cours...";
     dessinerTout();
     
+    // Nettoyer l'ancien intervalle s'il existe
     if (intervalId) {
         clearInterval(intervalId);
     }
     
+    // ===== BOUCLE DE JEU PRINCIPALE =====
+    // Exécutée toutes les 100ms (10 fois par seconde)
     intervalId = setInterval(() => {
         if (!jeuEnCours) return;
         
+        // Faire avancer les deux joueurs
         joueur1.avancer();
         joueur2.avancer();
         dessinerTout();
         
+        // Vérifier les collisions pour chaque joueur
         let collision1 = joueur1.verifierCollisionBord() || joueur1.verifierCollision(joueur2);
         let collision2 = joueur2.verifierCollisionBord() || joueur2.verifierCollision(joueur1);
         
+        // Si au moins un joueur a une collision
         if (collision1 || collision2) {
             jeuEnCours = false;
             
+            // Cas d'égalité : les deux joueurs se percutent en même temps
             if (collision1 && collision2) {
                 dessinerTout();
                 ctx.fillStyle = "white";
@@ -395,12 +483,17 @@ function demarrerPartie() {
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText("Égalité!", CANVAS.width / 2, CANVAS.height / 2);
-            } else if (collision1) {
+            } 
+            // Le joueur 1 a perdu
+            else if (collision1) {
                 score.incrementerJ2();
-            } else if (collision2) {
+            } 
+            // Le joueur 2 a perdu
+            else if (collision2) {
                 score.incrementerJ1();
             }
             
+            // Attendre 1.5 secondes avant de lancer la prochaine manche ou partie
             setTimeout(() => {
                 if (!verifierFinPartie()) {
                     lancerNouvelleManche();
@@ -410,27 +503,36 @@ function demarrerPartie() {
     }, 100);
 }
 
+// ===== FONCTION DE RÉINITIALISATION =====
+// Arrête le jeu et remet tout à zéro
 function reinitialiserPartie() {
+    // Arrêter la boucle de jeu
     if (intervalId) {
         clearInterval(intervalId);
     }
     
+    // Réinitialiser l'état du jeu
     jeuEnCours = false;
     partieCommencee = false;
     score.reinitialiser();
     joueur1.reinitialiser();
     joueur2.reinitialiser();
     
+    // Réactiver le bouton démarrer
     btnDemarrer.disabled = false;
     btnDemarrer.textContent = "Démarrer";
     
+    // Redessiner le terrain vide
     ctx.clearRect(0, 0, CANVAS.width, CANVAS.height);
     dessinerTout();
 }
 
+// ===== ASSIGNATION DES ÉVÉNEMENTS AUX BOUTONS =====
 btnDemarrer.addEventListener('click', demarrerPartie);
 btnReinitialiser.addEventListener('click', reinitialiserPartie);
 
+// ===== FONCTION D'AFFICHAGE DU GAGNANT =====
+// Affiche un message au centre du canvas
 function afficherGagnant(gagnant) {
     ctx.fillStyle = "white";
     ctx.font = "48px Arial";
@@ -439,6 +541,8 @@ function afficherGagnant(gagnant) {
     ctx.fillText(gagnant, CANVAS.width / 2, CANVAS.height / 2);
 }
 
+// ===== FONCTION DE DESSIN GLOBAL =====
+// Efface et redessine tout le canvas
 function dessinerTout() {
     ctx.clearRect(0, 0, CANVAS.width, CANVAS.height);
     joueur1.dessinerComplet();

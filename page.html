@@ -4,20 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAE WEB 2025</title>
+    <!-- Feuille de style personnalisée -->
     <link rel="stylesheet" href="style.css">
+    <!-- Thème jQuery UI pour la modal de paramètres -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
+    <!-- Conteneur principal centré -->
     <div id="container">
+        <!-- Logo TRON -->
         <img src="assets/TRON.png" alt="TRON">
+        
+        <!-- Zone de jeu avec canvas et barre latérale -->
         <div id="gameArea">
+            <!-- Canvas pour dessiner le jeu -->
             <canvas id="myCanvas"></canvas>
+            
+            <!-- Barre latérale avec score et boutons -->
             <div id="sidebar">
+                <!-- Affichage du score -->
                 <div id="score">
                     <h2>Score</h2>
                     <div><span class="label">Joueur 1 (Bleu):</span> <span id="scoreJ1">0</span></div>
                     <div><span class="label">Joueur 2 (Rouge):</span> <span id="scoreJ2">0</span></div>
                 </div>
+                
+                <!-- Boutons de contrôle -->
                 <button id="btnDemarrer">Démarrer</button>
                 <button id="btnReinitialiser">Réinitialiser</button>
                 <button id="btnParametres">Paramètres</button>
@@ -25,30 +37,42 @@
         </div>
     </div>
 
-    <!-- Modal pour les paramètres -->
+    <!-- ===== MODAL DE CONFIGURATION DES TOUCHES ===== -->
+    <!-- Cachée par défaut, affichée via jQuery UI Dialog -->
     <div id="dialogParametres" title="Configuration des touches" style="display: none;">
+        <!-- Section pour le Joueur 1 -->
         <div class="parametres-section">
             <h3>Joueur 1 (Bleu)</h3>
+            
+            <!-- Configuration touche Haut -->
             <div class="touche-config">
                 <label>Haut:</label>
                 <input type="text" id="j1Haut" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="haut">Changer</button>
             </div>
+            
+            <!-- Configuration touche Bas -->
             <div class="touche-config">
                 <label>Bas:</label>
                 <input type="text" id="j1Bas" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="bas">Changer</button>
             </div>
+            
+            <!-- Configuration touche Gauche -->
             <div class="touche-config">
                 <label>Gauche:</label>
                 <input type="text" id="j1Gauche" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="gauche">Changer</button>
             </div>
+            
+            <!-- Configuration touche Droite -->
             <div class="touche-config">
                 <label>Droite:</label>
                 <input type="text" id="j1Droite" readonly>
                 <button class="btn-changer" data-joueur="1" data-direction="droite">Changer</button>
             </div>
+            
+            <!-- Configuration touche Sauter -->
             <div class="touche-config">
                 <label>Sauter:</label>
                 <input type="text" id="j1Sauter" readonly>
@@ -56,8 +80,11 @@
             </div>
         </div>
 
+        <!-- Section pour le Joueur 2 -->
         <div class="parametres-section">
             <h3>Joueur 2 (Rouge)</h3>
+            
+            <!-- Configuration des touches du Joueur 2 (même structure que Joueur 1) -->
             <div class="touche-config">
                 <label>Haut:</label>
                 <input type="text" id="j2Haut" readonly>
@@ -85,13 +112,18 @@
             </div>
         </div>
 
+        <!-- Bouton de réinitialisation des touches -->
         <div style="text-align: center; margin-top: 20px;">
             <button id="btnReinitialiserTouches">Réinitialiser les touches par défaut</button>
         </div>
     </div>
 
+    <!-- ===== CHARGEMENT DES BIBLIOTHÈQUES ET SCRIPTS ===== -->
+    <!-- jQuery (requis pour jQuery UI) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery UI (pour la modal de paramètres) -->
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <!-- Script JavaScript principal du jeu -->
     <script src="script.js"></script>
 </body>
 </html>
