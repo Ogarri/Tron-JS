@@ -88,7 +88,7 @@ class Score {
 // ===== CLASSE JOUEUR =====
 // Représente un joueur avec sa position, direction, traînée et comportement
 class Joueur extends Grille{
-    constructor(positionDepartX, positionDepartY, couleur) {
+    constructor(positionDepartX, positionDepartY, couleur, imageMoto) {
         super(); // Hérite des propriétés de Grille
         // Positions initiales (pour réinitialisation)
         this.positionDepartXInitial = positionDepartX;
@@ -105,6 +105,14 @@ class Joueur extends Grille{
         this.positions = [[positionDepartX, positionDepartY]];
         // File d'attente des changements de direction
         this.fileDirections = [];
+        // Image de la moto
+        this.imageMoto = new Image();
+        this.imageMoto.src = imageMoto;
+        this.imageMotoChargee = false;
+        // Vérifier quand l'image est chargée
+        this.imageMoto.onload = () => {
+            this.imageMotoChargee = true;
+        };
     }
 
     // Dessine une cellule du joueur à sa position actuelle
@@ -209,33 +217,49 @@ class Joueur extends Grille{
     dessinerComplet() {
         this.positions.forEach(([x, y], index) => {
             ctx.fillStyle = this.couleur;
-            // La dernière position (tête) est dessinée en forme de demi-cercle
+            // La dernière position (tête) est dessinée avec l'image de la moto
             if (index === this.positions.length - 1) {
-                ctx.beginPath();
-                const centreX = x * this.largeurGrille + this.largeurGrille / 2;
-                const centreY = y * this.hauteurGrille + this.hauteurGrille / 2;
-                const rayon = this.largeurGrille / 2;
-                
-                // Déterminer l'angle du demi-cercle selon la direction
-                let angleDebut, angleFin;
-                if (this.directionX === 1) { // Droite
-                    angleDebut = -Math.PI / 2;
-                    angleFin = Math.PI / 2;
-                } else if (this.directionX === -1) { // Gauche
-                    angleDebut = Math.PI / 2;
-                    angleFin = 3 * Math.PI / 2;
-                } else if (this.directionY === -1) { // Haut
-                    angleDebut = Math.PI;
-                    angleFin = 2 * Math.PI;
-                } else { // Bas
-                    angleDebut = 0;
-                    angleFin = Math.PI;
+                if (this.imageMotoChargee) {
+                    // Sauvegarder le contexte pour la rotation
+                    ctx.save();
+                    
+                    // Calculer le centre de la case
+                    const centreX = x * this.largeurGrille + this.largeurGrille / 2;
+                    const centreY = y * this.hauteurGrille + this.hauteurGrille / 2;
+                    
+                    // Déplacer l'origine au centre de la case
+                    ctx.translate(centreX, centreY);
+                    
+                    // Calculer l'angle de rotation selon la direction
+                    let angle = 0;
+                    if (this.directionX === 1) { // Droite
+                        angle = 0;
+                    } else if (this.directionX === -1) { // Gauche
+                        angle = Math.PI;
+                    } else if (this.directionY === -1) { // Haut
+                        angle = -Math.PI / 2;
+                    } else if (this.directionY === 1) { // Bas
+                        angle = Math.PI / 2;
+                    }
+                    
+                    // Appliquer la rotation
+                    ctx.rotate(angle);
+                    
+                    // Dessiner l'image étirée en longueur
+                    // Largeur (dans le sens de déplacement) : 4x plus grande
+                    // Hauteur (perpendiculaire) : 2x plus grande
+                    const largeur = this.largeurGrille * 4;
+                    const hauteur = this.hauteurGrille * 2;
+                    ctx.drawImage(this.imageMoto, -largeur / 2, -hauteur / 2, largeur, hauteur);
+                    
+                    // Restaurer le contexte
+                    ctx.restore();
+                } else {
+                    // Si l'image n'est pas encore chargée, dessiner un carré temporaire
+                    ctx.fillRect(x * this.largeurGrille, y * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
                 }
-                
-                ctx.arc(centreX, centreY, rayon, angleDebut, angleFin);
-                ctx.fill();
             } else {
-                // Les autres positions sont des carrés
+                // Les autres positions sont des carrés (la traînée)
                 ctx.fillRect(x * this.largeurGrille, y * this.hauteurGrille, this.largeurGrille, this.hauteurGrille);
             }
         });
@@ -257,9 +281,9 @@ class Joueur extends Grille{
 var grille = new Grille();
 grille.dessinerGrille();
 
-// Créer les deux joueurs (positions de départ et couleurs)
-var joueur1 = new Joueur(1, 28, "blue");
-var joueur2 = new Joueur(1, 30, "red");
+// Créer les deux joueurs avec leurs images de motos respectives
+var joueur1 = new Joueur(1, 28, "blue", "assets/moto_bleu.png");
+var joueur2 = new Joueur(1, 30, "red", "assets/moto_rouge.png");
 // Créer le système de score (premier à 3 manches)
 var score = new Score(3);
 // Variables d'état du jeu
