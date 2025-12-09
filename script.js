@@ -434,17 +434,44 @@ btnParametres.addEventListener('click', function() {
     $("#dialogParametres").dialog("open");
 });
 
+// ===== GESTION DES SONS =====
+// Récupérer les éléments audio
+const musiqueTheme = document.getElementById('musiqueTheme');
+const sonMatchStart = document.getElementById('sonMatchStart');
+const sonPlayer1Wins = document.getElementById('sonPlayer1Wins');
+const sonPlayer2Wins = document.getElementById('sonPlayer2Wins');
+
 // ===== FONCTION DE VÉRIFICATION DE FIN DE PARTIE =====
 // Vérifie si un joueur a remporté suffisamment de manches
 function verifierFinPartie() {
     const gagnant = score.verifierGagnant();
     if (gagnant === 1) {
+        // Arrêter la musique de fond
+        musiqueTheme.pause();
+        musiqueTheme.currentTime = 0;
+        
+        // Jouer le son de victoire du joueur 1
+        sonPlayer1Wins.currentTime = 0;
+        sonPlayer1Wins.play().catch(error => {
+            console.log("Erreur lors de la lecture du son de victoire:", error);
+        });
+        
         afficherGagnant("Joueur 1 (Bleu) remporte la partie!");
         btnDemarrer.disabled = false;
         btnDemarrer.textContent = "Nouvelle partie";
         partieCommencee = false;
         return true;
     } else if (gagnant === 2) {
+        // Arrêter la musique de fond
+        musiqueTheme.pause();
+        musiqueTheme.currentTime = 0;
+        
+        // Jouer le son de victoire du joueur 2
+        sonPlayer2Wins.currentTime = 0;
+        sonPlayer2Wins.play().catch(error => {
+            console.log("Erreur lors de la lecture du son de victoire:", error);
+        });
+        
         afficherGagnant("Joueur 2 (Rouge) remporte la partie!");
         btnDemarrer.disabled = false;
         btnDemarrer.textContent = "Nouvelle partie";
@@ -466,6 +493,18 @@ function lancerNouvelleManche() {
 // ===== FONCTION DE DÉMARRAGE DE LA PARTIE =====
 // Réinitialise tout et démarre le jeu
 function demarrerPartie() {
+    // Jouer le son de démarrage de match
+    sonMatchStart.currentTime = 0;
+    sonMatchStart.play().catch(error => {
+        console.log("Erreur lors de la lecture du son:", error);
+    });
+    
+    // Démarrer la musique de fond en boucle
+    musiqueTheme.currentTime = 0;
+    musiqueTheme.play().catch(error => {
+        console.log("Erreur lors de la lecture de la musique:", error);
+    });
+    
     // Réinitialiser le score et les joueurs
     score.reinitialiser();
     joueur1.reinitialiser();
@@ -534,6 +573,10 @@ function reinitialiserPartie() {
     if (intervalId) {
         clearInterval(intervalId);
     }
+    
+    // Arrêter la musique de fond
+    musiqueTheme.pause();
+    musiqueTheme.currentTime = 0;
     
     // Réinitialiser l'état du jeu
     jeuEnCours = false;
