@@ -181,7 +181,7 @@ const hauteur = this.hauteurGrille * 2;
 
 ## 👥 Crédits
 
-Projet développé dans le cadre de la SAE WEB 2025.
+Projet développé dans le cadre de la SAE WEB 2025 par Bastien MORLION.
 
 ## 📄 Licence
 
